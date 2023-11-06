@@ -19,3 +19,4 @@ service.interceptors.request.use(
     return error;
   }
 );
+export default service;
