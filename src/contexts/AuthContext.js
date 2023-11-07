@@ -4,24 +4,15 @@ import { useSelector } from "react-redux";
 
 const initialState = {
   isAuthenticated: false,
-  isInitialize: false,
+
   user: null,
 };
 
-const INITIALIZE = "INITIALIZE";
 const LOGIN = "LOGIN";
 const LOGOUT = "LOGOUT";
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case INITIALIZE:
-      const { isAuthenticated, user } = action.payload;
-      return {
-        ...state,
-        isInitialize: true,
-        isAuthenticated,
-        user,
-      };
     case LOGIN:
       return {
         ...state,
@@ -55,27 +46,29 @@ function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   useEffect(() => {
     const initialize = async () => {
-      try {
-        const accessToken = window.localStorage.getItem("accessToken");
-        if (accessToken) {
+      const accessToken = window.localStorage.getItem("accessToken");
+      if (accessToken) {
+        try {
           setSession(accessToken);
           const response = await service.get("users/me/");
           dispatch({
-            type: INITIALIZE,
-            payload: { isAuthenticated: true, user: response.data },
+            type: LOGIN,
+            payload: { user: response },
           });
-        } else {
-          setSession(null);
-          dispatch({
-            type: INITIALIZE,
-            payload: { isAuthenticated: false, user: null },
-          });
+          console.log(response);
+        } catch (error) {
+          if (error && error.status === 400) {
+            setSession(null);
+            dispatch({
+              type: LOGOUT,
+            });
+            console.error(error.data.error);
+          }
         }
-      } catch {
+      } else {
         setSession(null);
         dispatch({
-          type: INITIALIZE,
-          payload: { isAuthenticated: false, user: null },
+          type: LOGOUT,
         });
       }
     };
@@ -83,10 +76,11 @@ function AuthProvider({ children }) {
   }, []);
   const login = async (data) => {
     const response = await service.post("token/", data);
-    setSession(response.data.access);
-    dispatch({
-      type: LOGIN,
-    });
+    return response.access;
+  };
+  const checkLogin = async (accessToken) => {
+    const response = await service.get("users/me/");
+    return response;
   };
   return (
     <AuthContext.Provider value={{ ...state, login }}>

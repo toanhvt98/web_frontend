@@ -28,7 +28,6 @@ const defaultValues = {
 function LoginPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  console.log("auth", auth);
   const methods = useForm({
     resolver: yupResolver(loginSchema),
     defaultValues,
@@ -40,8 +39,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const loginSubmit = async (data) => {
-    auth.login(data);
-    navigate("/", { replace: true });
+    auth.login(data).then(() => navigate("/", { replace: true }));
   };
 
   return (
