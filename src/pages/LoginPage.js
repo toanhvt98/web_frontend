@@ -17,6 +17,9 @@ import { LoadingButton } from "@mui/lab";
 import service from "../app/service";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+
 const loginSchema = Yup.object().shape({
   username: Yup.string().required("Tên đăng nhập không được để trống"),
   password: Yup.string().required("Mật khẩu không được để trống"),
@@ -39,16 +42,21 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const loginSubmit = async (data) => {
-    auth.login(data).then(() => navigate("/", { replace: true }));
+    auth
+      .login(data)
+      .then((accessToken) =>
+        auth
+          .checkToken(accessToken)
+          .then(navigate("/", { replace: true }))
+          .catch((error) => toast.error(error.data.error))
+      )
+      .catch(() => toast.error("Tài khoản hoặc mật khẩu không đúng"));
   };
 
   return (
     <Container maxWidth="xs">
       <FormProvider methods={methods} onSubmit={handleSubmit(loginSubmit)}>
         <Stack spacing={3}>
-          {!!errors.responseError && (
-            <Alert severity="error">{errors.responseError.message}</Alert>
-          )}
           <FTextField name="username" label="Tên đăng nhập" />
           <FTextField
             name="password"

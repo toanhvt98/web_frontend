@@ -1,18 +1,26 @@
 import { createContext, useEffect, useReducer } from "react";
 import service from "../app/service";
-import { useSelector } from "react-redux";
 
 const initialState = {
   isAuthenticated: false,
-
+  isInitialize: false,
   user: null,
 };
 
 const LOGIN = "LOGIN";
 const LOGOUT = "LOGOUT";
+const INIT = "INIT";
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case INIT:
+      const { isAuthenticated, user } = action.payload;
+      return {
+        ...state,
+        isInitialize: true,
+        isAuthenticated,
+        user,
+      };
     case LOGIN:
       return {
         ...state,
@@ -28,7 +36,7 @@ const reducer = (state, action) => {
       };
 
     default:
-      break;
+      return state;
   }
 };
 
@@ -45,45 +53,54 @@ const AuthContext = createContext({ ...initialState });
 function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   useEffect(() => {
-    const initialize = async () => {
-      const accessToken = window.localStorage.getItem("accessToken");
-      if (accessToken) {
-        try {
+    const initial = async () => {
+      try {
+        const accessToken = window.localStorage.getItem("accessToken");
+        if (accessToken) {
           setSession(accessToken);
           const response = await service.get("users/me/");
+
           dispatch({
             type: LOGIN,
-            payload: { user: response },
+            payload: { response },
           });
-          console.log(response);
-        } catch (error) {
-          if (error && error.status === 400) {
-            setSession(null);
-            dispatch({
-              type: LOGOUT,
-            });
-            console.error(error.data.error);
-          }
+        } else {
+          setSession(null);
+          dispatch({
+            type: LOGOUT,
+          });
         }
-      } else {
+      } catch {
         setSession(null);
         dispatch({
           type: LOGOUT,
         });
       }
     };
-    initialize();
+    initial();
   }, []);
   const login = async (data) => {
     const response = await service.post("token/", data);
     return response.access;
   };
-  const checkLogin = async (accessToken) => {
-    const response = await service.get("users/me/");
-    return response;
+  const checkToken = async (accessToken) => {
+    if (accessToken) {
+      setSession(accessToken);
+      const response = await service.get("users/me/");
+
+      dispatch({
+        type: LOGIN,
+        payload: { response },
+      });
+    } else {
+      setSession(null);
+      dispatch({
+        type: LOGOUT,
+      });
+    }
   };
   return (
-    <AuthContext.Provider value={{ ...state, login }}>
+    <AuthContext.Provider value={{ ...state, login, checkToken }}>
       {children}
     </AuthContext.Provider>
   );

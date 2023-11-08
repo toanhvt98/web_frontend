@@ -2,7 +2,7 @@ import { Stack } from "@mui/material";
 import React from "react";
 import { Outlet } from "react-router-dom";
 import Logo from "../components/Logo";
-
+import ToastMessage from "../components/toast/ToastMessage";
 function BlankLayout() {
   return (
     <Stack
@@ -13,6 +13,7 @@ function BlankLayout() {
       }}
     >
       <Logo sx={{ width: 300, height: 300 }} />
+      <ToastMessage />
       <Outlet />
     </Stack>
   );
