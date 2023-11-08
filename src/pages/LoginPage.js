@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import FormProvider from "../components/form/FormProvider";
 import FTextField from "../components/form/FTextField";
@@ -19,6 +19,7 @@ import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { useDispatch } from "react-redux";
+import axios from "axios";
 
 const loginSchema = Yup.object().shape({
   username: Yup.string().required("Tên đăng nhập không được để trống"),
@@ -47,12 +48,25 @@ function LoginPage() {
       .then((accessToken) =>
         auth
           .checkToken(accessToken)
-          .then(navigate("/", { replace: true }))
-          .catch((error) => toast.error(error.data.error))
+          .then(() => {
+            navigate("/", { replace: true });
+          })
+          .catch((error) => {
+            if (error.response.status === 400) {
+              toast.error(error.response.data.error);
+            } else if (401 === error.response.status) {
+              toast.error(error.response);
+            }
+            auth.setSession(null);
+          })
       )
       .catch(() => toast.error("Tài khoản hoặc mật khẩu không đúng"));
   };
-
+  useEffect(() => {
+    try {
+      if (auth.isAuthenticated) navigate("/", { replace: true });
+    } catch {}
+  });
   return (
     <Container maxWidth="xs">
       <FormProvider methods={methods} onSubmit={handleSubmit(loginSubmit)}>
@@ -66,7 +80,8 @@ function LoginPage() {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
+                    onMouseDown={() => setShowPassword(true)}
+                    onMouseUp={() => setShowPassword(false)}
                     edge="end"
                   >
                     {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
