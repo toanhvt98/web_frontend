@@ -12,16 +12,11 @@ import LalaPage from "../pages/LalaPage";
 function Router() {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <AuthRequired>
-            <MainLayout />
-          </AuthRequired>
-        }
-      >
-        <Route index element={<HomePage />} />
-        <Route path="/lala" element={<LalaPage />} />
+      <Route element={<AuthRequired />}>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="/lala" element={<LalaPage />} />
+        </Route>
       </Route>
       <Route element={<BlankLayout />}>
         <Route path="/login" element={<LoginPage />} />

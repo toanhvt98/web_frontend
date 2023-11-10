@@ -50,22 +50,27 @@ function AuthProvider({ children }) {
       try {
         const accessToken = window.localStorage.getItem("accessToken");
 
-        if (!checkToken(accessToken)) setSession(null);
+        checkToken(accessToken)
+          .then()
+          .catch(() => {
+            logout();
+          });
       } catch {}
     };
     initial();
   }, []);
   const login = async (data) => {
     const response = await service.post("token/", data);
-    return response.access;
+    return response.data.access;
   };
   const checkToken = async (accessToken) => {
     if (accessToken) {
       service.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
       const response = await service.get("users/me/");
+      const user = response.data;
       dispatch({
         type: LOGIN,
-        payload: { response },
+        payload: { user },
       });
       setSession(accessToken);
       return response;
@@ -76,7 +81,7 @@ function AuthProvider({ children }) {
       });
     }
   };
-  const logout = async () => {
+  const logout = () => {
     setSession(null);
     dispatch({
       type: LOGOUT,

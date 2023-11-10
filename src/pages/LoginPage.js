@@ -55,7 +55,7 @@ function LoginPage() {
             if (error.response.status === 400) {
               toast.error(error.response.data.error);
             } else if (401 === error.response.status) {
-              toast.error(error.response);
+              toast.error(error);
             }
             auth.setSession(null);
           })
@@ -63,9 +63,7 @@ function LoginPage() {
       .catch(() => toast.error("Tài khoản hoặc mật khẩu không đúng"));
   };
   useEffect(() => {
-    try {
-      if (auth.isAuthenticated) navigate("/", { replace: true });
-    } catch {}
+    if (auth.isAuthenticated) navigate("/", { replace: true });
   });
   return (
     <Container maxWidth="xs">

@@ -15,7 +15,6 @@ function MainLayout() {
         <Outlet />
       </Stack>
       <Box sx={{ flexGrow: 1 }} />
-      <FooterLayout />
     </Stack>
   );
 }
