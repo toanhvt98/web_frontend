@@ -12,7 +12,6 @@ function MainLayout() {
       <Stack direction="row">
         <Navbar />
         <ToastMessage />
-        <Outlet />
       </Stack>
       <Box sx={{ flexGrow: 1 }} />
     </Stack>
